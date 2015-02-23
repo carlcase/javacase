@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+	<!-- 连接池A开始 -->
+	<bean id="dataSource_A"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+		<property name="url" value="jdbc:oracle:thin:@192.168.1.38:1521:orcl2"/>
+		<property name="username" value="tscard_test" />
+		<property name="password" value="tscard_test" />
+	</bean>
+	<bean id="poolConfig_A"
+		class="com.tecsun.framework.basic.springpool.Config">
+		<property name="poolName" value="A" />
+		<property name="maxConnNum" value="1000" />
+		<property name="expire" value="5000" />
+	</bean>
+	<bean id="pool_A"
+		class="com.tecsun.framework.basic.springpool.ConnectionPool">
+		<property name="dataSource" ref="dataSource_A" />
+		<property name="config" ref="poolConfig_A" />
+	</bean>
+	<!-- 连接池A结束 -->
+	<!-- 连接池B开始 -->
+	<bean id="dataSource_B"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+		<property name="url" value="jdbc:oracle:thin:@192.168.1.38:1521:orcl2"/>
+		<!--
+		 <property name="username" value="gongan_xxzx" />
+		<property name="password" value="gongan123" />   
+		--><property name="username" value="user_gongan" />
+		<property name="password" value="gongan_admin" />
+	</bean>
+	<bean id="poolConfig_B"
+		class="com.tecsun.framework.basic.springpool.Config">
+		<property name="poolName" value="B" />
+		<property name="maxConnNum" value="1000" />
+		<property name="expire" value="5000" />
+	</bean>
+	<bean id="pool_B"
+		class="com.tecsun.framework.basic.springpool.ConnectionPool">
+		<property name="dataSource" ref="dataSource_B" />
+		<property name="config" ref="poolConfig_B" />
+	</bean>
+	<!-- 连接池B结束 -->
+	
+	<!-- pool List -->
+	<bean id="poolList" class="java.util.ArrayList">
+		<constructor-arg>
+			<list>
+				<ref bean="pool_A" />
+				<ref bean="pool_B" />
+			</list>
+		</constructor-arg>
+	</bean>
+
+	<!-- 连接池管理 -->
+	<bean id="connectionManager"
+		class="com.tecsun.framework.basic.springpool.ConnectionManager">
+		<property name="poolList" ref="poolList" />
+	</bean>
+	<!-- dao_A Bean -->
+	<bean id="basicDao_A"
+		class="com.tecsun.framework.basic.dao.BasicDao" singleton="false">
+		<property name="connManager" ref="connectionManager" />
+		<property name="poolName" value="A" />
+	</bean>
+	<bean id="basicDao_B"
+		class="com.tecsun.framework.basic.dao.BasicDao" singleton="false">
+		<property name="connManager" ref="connectionManager" />
+		<property name="poolName" value="B" />
+	</bean>
+	<!-- 事务处理-->
+	<bean id="serviceInterceptor"
+		class="com.tecsun.framework.basic.spring.ServiceInterceptor"
+		abstract="false" singleton="true" lazy-init="default"
+		autowire="default" dependency-check="default">
+	</bean>
+
+</beans>
